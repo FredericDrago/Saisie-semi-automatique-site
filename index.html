@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="pageTitle">Saisie semi-automatique — Real-time French autocomplete</title>
+<title id="pageTitle">Saisie semi-automatique : Real-time French autocomplete</title>
 <meta id="pageDesc" name="description" content="A Chrome extension that completes your words in French as you type, without ever sending your data anywhere but your own browser.">
 <style>
 
@@ -360,7 +360,7 @@
   .plan li:first-child { border-top: none; }
 
   .plan li::before {
-    content: "—";
+    content: "•";
     position: absolute;
     left: 0;
     color: var(--ink-faint);
@@ -445,11 +445,11 @@
 <header class="hero">
   <div class="wrap">
     <h1 data-i18n="hero.title">Your sentence finishes before you do.</h1>
-    <p class="lede" data-i18n="hero.lede">A Chrome extension that completes your words in French as you type — in Gmail, Google Docs, or any text field. Built on a real linguistic dictionary, not a guessed word list.</p>
+    <p class="lede" data-i18n="hero.lede">A Chrome extension that completes your words in French as you type, on social media, in Google Docs, or in any text field. Built on a real linguistic dictionary, not a guessed word list.</p>
 
     <div class="cta-row">
       <!-- TODO : remplacer "#" par le lien réel de la fiche Chrome Web Store une fois l'extension publiée -->
-      <a href="#" class="btn btn-primary" data-i18n="hero.cta1">Add to Chrome — free</a>
+      <a href="#" class="btn btn-primary" data-i18n="hero.cta1">Add to Chrome (free)</a>
       <a href="#tarifs" class="btn btn-secondary" data-i18n="hero.cta2">See pricing</a>
     </div>
 
@@ -471,7 +471,7 @@
       <div class="feature">
         <div class="feature-mark">Aa</div>
         <h3 data-i18n="how.f1.title">A real dictionary</h3>
-        <p data-i18n="how.f1.desc">Suggestions are built on Lexique 4 (New, Pallier, Schalchli, Bourgin &amp; Gimenes), a scientifically validated French lexicon — not a guessed word list.</p>
+        <p data-i18n="how.f1.desc">Suggestions are built on Lexique 4 (New, Pallier, Schalchli, Bourgin &amp; Gimenes), a scientifically validated French lexicon, not a guessed word list.</p>
       </div>
       <div class="feature">
         <div class="feature-mark">Gr</div>
@@ -531,18 +531,18 @@
 <section id="confidentialite">
   <div class="wrap">
     <div class="eyebrow" data-i18n="privacy.eyebrow">Privacy</div>
-    <h2 data-i18n="privacy.title">What the extension does — and doesn't do</h2>
+    <h2 data-i18n="privacy.title">What the extension does, and doesn't do</h2>
     <div class="privacy-note">
       <p data-i18n-html="privacy.p1"><strong>What's stored:</strong> your settings, your personal dictionary, and your list of banned words are saved locally in your browser (and synced via your Google account if Chrome sync is on).</p>
       <p data-i18n-html="privacy.p2"><strong>What's never collected:</strong> the text you write is never saved, transmitted, or analyzed on a server. The extension only works with what's already in your browser.</p>
-      <p data-i18n-html="privacy.p3"><strong>Dictionary updates:</strong> the extension periodically checks whether a new version of the linguistic dictionary is available, and downloads it automatically — that's the only network connection it ever makes.</p>
+      <p data-i18n-html="privacy.p3"><strong>Dictionary updates:</strong> the extension periodically checks whether a new version of the linguistic dictionary is available, and downloads it automatically: that's the only network connection it ever makes.</p>
     </div>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
-    <span data-i18n="footer.line">Saisie semi-automatique — Chrome extension not affiliated with Google.</span>
+    <span data-i18n="footer.line">Saisie semi-automatique, a Chrome extension not affiliated with Google.</span>
     <!-- TODO : remplacer par une vraie adresse de contact -->
     <a href="mailto:contact@votredomaine.example">contact@votredomaine.example</a>
   </div>
@@ -557,21 +557,21 @@
   // =======================================================================
   var i18n = {
     fr: {
-      title: "Saisie semi-automatique — Suggestions d'écriture en temps réel",
+      title: "Saisie semi-automatique : suggestions d'écriture en temps réel",
       desc: "Extension Chrome qui complète vos mots en français pendant que vous écrivez, sans jamais envoyer vos données ailleurs que dans votre navigateur.",
       "nav.how": "Comment ça marche",
       "nav.pricing": "Tarifs",
       "nav.privacy": "Confidentialité",
       "hero.title": "Votre phrase se termine avant vous.",
-      "hero.lede": "Une extension Chrome qui complète vos mots en français pendant que vous écrivez — dans Gmail, Google Docs, ou n'importe quel champ de texte. Basée sur un vrai dictionnaire linguistique, pas une liste au hasard.",
-      "hero.cta1": "Ajouter à Chrome — gratuit",
+      "hero.lede": "Une extension Chrome qui complète vos mots en français pendant que vous écrivez, sur les réseaux sociaux, dans Google Docs, ou dans n'importe quel champ de texte. Basée sur un vrai dictionnaire linguistique, pas une liste de mots au hasard.",
+      "hero.cta1": "Ajouter à Chrome (gratuit)",
       "hero.cta2": "Voir les tarifs",
       "demo.label": "Aperçu en direct",
       "demo.hint": "pour compléter",
       "how.eyebrow": "Comment ça marche",
       "how.title": "Trois principes simples, appliqués à chaque mot",
       "how.f1.title": "Un vrai dictionnaire",
-      "how.f1.desc": "Les suggestions s'appuient sur Lexique 4 (New, Pallier, Schalchli, Bourgin & Gimenes), un lexique du français validé scientifiquement — pas une liste de mots devinés.",
+      "how.f1.desc": "Les suggestions s'appuient sur Lexique 4 (New, Pallier, Schalchli, Bourgin & Gimenes), un lexique du français validé scientifiquement, pas une liste de mots devinés.",
       "how.f2.title": "Grammaticalement à jour",
       "how.f2.desc": "Accords, conjugaisons et élisions (l', d', qu'...) sont pris en compte automatiquement, pour ne jamais suggérer un mot qui sonne faux dans la phrase.",
       "how.f3.title": "100% local",
@@ -598,28 +598,28 @@
       "pricing.premium.i6": "Import en masse de listes (.txt)",
       "pricing.premium.cta": "Obtenir Premium",
       "privacy.eyebrow": "Confidentialité",
-      "privacy.title": "Ce que l'extension fait — et ne fait pas",
+      "privacy.title": "Ce que l'extension fait, et ne fait pas",
       "privacy.p1": "<strong>Ce qui est stocké :</strong> vos réglages, votre dictionnaire personnel et votre liste de mots masqués sont enregistrés localement dans votre navigateur (et synchronisés via votre compte Google si la synchronisation Chrome est activée).",
       "privacy.p2": "<strong>Ce qui n'est jamais collecté :</strong> le texte que vous écrivez n'est ni enregistré, ni transmis, ni analysé sur un serveur. L'extension ne fonctionne qu'avec ce qui est déjà présent dans votre navigateur.",
-      "privacy.p3": "<strong>Mise à jour du dictionnaire :</strong> l'extension vérifie périodiquement si une nouvelle version du dictionnaire linguistique est disponible, et la télécharge automatiquement — c'est la seule connexion réseau effectuée.",
-      "footer.line": "Saisie semi-automatique — extension Chrome non affiliée à Google."
+      "privacy.p3": "<strong>Mise à jour du dictionnaire :</strong> l'extension vérifie périodiquement si une nouvelle version du dictionnaire linguistique est disponible, et la télécharge automatiquement : c'est la seule connexion réseau effectuée.",
+      "footer.line": "Saisie semi-automatique, extension Chrome non affiliée à Google."
     },
     en: {
-      title: "Saisie semi-automatique — Real-time French autocomplete",
+      title: "Saisie semi-automatique : Real-time French autocomplete",
       desc: "A Chrome extension that completes your words in French as you type, without ever sending your data anywhere but your own browser.",
       "nav.how": "How it works",
       "nav.pricing": "Pricing",
       "nav.privacy": "Privacy",
       "hero.title": "Your sentence finishes before you do.",
-      "hero.lede": "A Chrome extension that completes your words in French as you type — in Gmail, Google Docs, or any text field. Built on a real linguistic dictionary, not a guessed word list.",
-      "hero.cta1": "Add to Chrome — free",
+      "hero.lede": "A Chrome extension that completes your words in French as you type, on social media, in Google Docs, or in any text field. Built on a real linguistic dictionary, not a guessed word list.",
+      "hero.cta1": "Add to Chrome (free)",
       "hero.cta2": "See pricing",
       "demo.label": "Live preview",
       "demo.hint": "to complete",
       "how.eyebrow": "How it works",
       "how.title": "Three simple principles, applied to every word",
       "how.f1.title": "A real dictionary",
-      "how.f1.desc": "Suggestions are built on Lexique 4 (New, Pallier, Schalchli, Bourgin & Gimenes), a scientifically validated French lexicon — not a guessed word list.",
+      "how.f1.desc": "Suggestions are built on Lexique 4 (New, Pallier, Schalchli, Bourgin & Gimenes), a scientifically validated French lexicon, not a guessed word list.",
       "how.f2.title": "Grammatically aware",
       "how.f2.desc": "Agreement, conjugation, and elisions (l', d', qu'...) are handled automatically, so it never suggests a word that sounds wrong in the sentence.",
       "how.f3.title": "100% local",
@@ -646,11 +646,11 @@
       "pricing.premium.i6": "Bulk import of lists (.txt)",
       "pricing.premium.cta": "Get Premium",
       "privacy.eyebrow": "Privacy",
-      "privacy.title": "What the extension does — and doesn't do",
+      "privacy.title": "What the extension does, and doesn't do",
       "privacy.p1": "<strong>What's stored:</strong> your settings, your personal dictionary, and your list of banned words are saved locally in your browser (and synced via your Google account if Chrome sync is on).",
       "privacy.p2": "<strong>What's never collected:</strong> the text you write is never saved, transmitted, or analyzed on a server. The extension only works with what's already in your browser.",
-      "privacy.p3": "<strong>Dictionary updates:</strong> the extension periodically checks whether a new version of the linguistic dictionary is available, and downloads it automatically — that's the only network connection it ever makes.",
-      "footer.line": "Saisie semi-automatique — Chrome extension not affiliated with Google."
+      "privacy.p3": "<strong>Dictionary updates:</strong> the extension periodically checks whether a new version of the linguistic dictionary is available, and downloads it automatically: that's the only network connection it ever makes.",
+      "footer.line": "Saisie semi-automatique, a Chrome extension not affiliated with Google."
     }
   };
 
@@ -686,23 +686,15 @@
   document.getElementById('btnLangEn').addEventListener('click', function () { appliquerLangue('en'); });
 
   // =======================================================================
-  // DÉMO ANIMÉE -- une phrase par langue, redémarrée à chaque changement
-  // de langue (via demarrerDemo(), appelé par appliquerLangue() ci-dessus).
+  // DÉMO ANIMÉE -- toujours en français : l'extension ne suggère QUE des
+  // mots français, quelle que soit la langue d'affichage de cette page.
   // =======================================================================
-  var exemplesParLangue = {
-    fr: [
-      { tape: "Je vous confirme la répara", fantome: "tion" },
-      { tape: "Veuillez trouver ci-join", fantome: "t" },
-      { tape: "Merci beauc", fantome: "oup" },
-      { tape: "Dans l'atten", fantome: "te de votre retour" }
-    ],
-    en: [
-      { tape: "I am writing to conf", fantome: "irm" },
-      { tape: "Please find at", fantome: "tached" },
-      { tape: "Thank you for your unders", fantome: "tanding" },
-      { tape: "Looking forward to your res", fantome: "ponse" }
-    ]
-  };
+  var exemples = [
+    { tape: "Je vous confirme la répara", fantome: "tion" },
+    { tape: "Veuillez trouver ci-join", fantome: "t" },
+    { tape: "Merci beauc", fantome: "oup" },
+    { tape: "Dans l'atten", fantome: "te de votre retour" }
+  ];
 
   var elTyped = document.getElementById('demoTyped');
   var elGhost = document.getElementById('demoGhost');
@@ -750,7 +742,6 @@
   async function boucleDemo(monJeton) {
     var i = 0;
     while (monJeton === jetonDemoActuel) {
-      var exemples = exemplesParLangue[langueActuelle] || exemplesParLangue.fr;
       await jouerExemple(exemples[i % exemples.length], monJeton);
       i++;
     }
