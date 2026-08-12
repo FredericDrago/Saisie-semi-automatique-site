@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saisie semi-automatique — Suggestions d'écriture en temps réel</title>
+<meta name="description" content="Extension Chrome qui complète vos mots en français pendant que vous écrivez, sans jamais envoyer vos données ailleurs que dans votre navigateur.">
+<style>
+
+  :root {
+    --paper: #f5f6f4;
+    --paper-raised: #ffffff;
+    --ink: #1e2230;
+    --ink-soft: #545b6e;
+    --ink-faint: #8a90a3;
+    --ghost: #b8bcc8;
+    --line: #e2e4e0;
+    --accent: #2f6b5e;
+    --accent-tint: #e2eeea;
+    --accent-2: #a9761f;
+    --accent-2-tint: #f5ecd9;
+    --radius: 10px;
+    --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --mono: 'SF Mono', 'Consolas', 'Menlo', 'Liberation Mono', monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: inherit; }
+
+  .wrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ---------- NAV ---------- */
+
+  nav.top {
+    padding: 22px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  nav.top .wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--serif);
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .brand-tag {
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-tint);
+    padding: 2px 7px;
+    border-radius: 5px;
+    letter-spacing: 0.04em;
+  }
+
+  nav.top .links {
+    display: flex;
+    gap: 28px;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+
+  nav.top .links a { text-decoration: none; }
+  nav.top .links a:hover { color: var(--ink); }
+
+  /* ---------- HERO ---------- */
+
+  header.hero {
+    padding: 76px 0 64px;
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(32px, 5vw, 48px);
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    margin: 0 0 20px;
+    max-width: 13ch;
+  }
+
+  .lede {
+    font-size: 18px;
+    color: var(--ink-soft);
+    max-width: 46ch;
+    margin: 0 0 40px;
+  }
+
+  .cta-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 56px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--sans);
+    font-size: 14.5px;
+    font-weight: 600;
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    border: 1px solid transparent;
+    cursor: pointer;
+  }
+
+  .btn-primary {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .btn-primary:hover { background: #313649; }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--ink);
+    border-color: var(--line);
+  }
+
+  .btn-secondary:hover { border-color: var(--ink-soft); }
+
+  /* ---------- DEMO (signature element) ---------- */
+
+  .demo {
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 28px 30px;
+  }
+
+  .demo-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    margin-bottom: 14px;
+  }
+
+  .demo-line {
+    font-family: var(--mono);
+    font-size: 17px;
+    min-height: 26px;
+    white-space: pre;
+  }
+
+  .demo-typed { color: var(--ink); }
+  .demo-ghost { color: var(--ghost); transition: color 0.15s ease; }
+  .demo-ghost.accepted { color: var(--ink); }
+
+  .demo-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 18px;
+    background: var(--ink);
+    vertical-align: -3px;
+    animation: blink 1s step-start infinite;
+  }
+
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .demo-hint {
+    margin-top: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--ink-faint);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .demo-hint.show { opacity: 1; }
+
+  kbd {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 700;
+    border: 1px solid var(--line);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    padding: 1px 6px;
+    background: var(--paper);
+  }
+
+  /* ---------- SECTIONS ---------- */
+
+  section { padding: 64px 0; border-top: 1px solid var(--line); }
+
+  .eyebrow {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: 28px;
+    letter-spacing: -0.01em;
+    margin: 0 0 36px;
+    max-width: 22ch;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+
+  .feature h3 {
+    font-size: 15.5px;
+    margin: 0 0 8px;
+  }
+
+  .feature p {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .feature-mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    background: var(--accent-tint);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 14px;
+  }
+
+  /* ---------- PRICING ---------- */
+
+  .plans {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .plan {
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 26px;
+  }
+
+  .plan-premium { border-color: var(--accent-2); }
+
+  .plan-name {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+  }
+
+  .plan-premium .plan-name { color: var(--accent-2); }
+
+  .plan-price {
+    font-family: var(--serif);
+    font-size: 30px;
+    margin-bottom: 4px;
+  }
+
+  .plan-price span {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--ink-faint);
+  }
+
+  .plan-note {
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    margin-bottom: 20px;
+  }
+
+  .plan ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 22px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+  }
+
+  .plan li {
+    padding: 6px 0 6px 20px;
+    position: relative;
+    border-top: 1px solid var(--line);
+  }
+
+  .plan li:first-child { border-top: none; }
+
+  .plan li::before {
+    content: "—";
+    position: absolute;
+    left: 0;
+    color: var(--ink-faint);
+  }
+
+  .plan-premium li::before {
+    content: "✓";
+    color: var(--accent-2);
+  }
+
+  .plan .btn { width: 100%; justify-content: center; }
+
+  /* ---------- PRIVACY NOTE ---------- */
+
+  .privacy-note {
+    background: var(--accent-tint);
+    border-radius: var(--radius);
+    padding: 22px 26px;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+
+  .privacy-note strong { color: var(--ink); }
+
+  /* ---------- FOOTER ---------- */
+
+  footer {
+    padding: 40px 0 60px;
+    border-top: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--ink-faint);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  footer a { text-decoration: none; color: var(--ink-soft); }
+  footer a:hover { color: var(--ink); }
+
+  @media (max-width: 640px) {
+    .grid-3, .plans { grid-template-columns: 1fr; }
+    nav.top .links { display: none; }
+    header.hero { padding: 48px 0 40px; }
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .demo-cursor { animation: none; }
+  }
+
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <div class="wrap">
+    <div class="brand">Saisie semi-automatique <span class="brand-tag">FR</span></div>
+    <div class="links">
+      <a href="#comment-ca-marche">Comment ça marche</a>
+      <a href="#tarifs">Tarifs</a>
+      <a href="#confidentialite">Confidentialité</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>Votre phrase se termine avant vous.</h1>
+    <p class="lede">Une extension Chrome qui complète vos mots en français pendant que vous écrivez — dans Gmail, Google Docs, ou n'importe quel champ de texte. Basée sur un vrai dictionnaire linguistique, pas une liste au hasard.</p>
+
+    <div class="cta-row">
+      <!-- TODO : remplacer "#" par le lien réel de la fiche Chrome Web Store une fois l'extension publiée -->
+      <a href="#" class="btn btn-primary">Ajouter à Chrome — gratuit</a>
+      <a href="#tarifs" class="btn btn-secondary">Voir les tarifs</a>
+    </div>
+
+    <div class="demo">
+      <div class="demo-label">Aperçu en direct</div>
+      <div class="demo-line">
+        <span class="demo-typed" id="demoTyped"></span><span class="demo-ghost" id="demoGhost"></span><span class="demo-cursor"></span>
+      </div>
+      <div class="demo-hint" id="demoHint"><kbd>Tab</kbd> pour compléter</div>
+    </div>
+  </div>
+</header>
+
+<section id="comment-ca-marche">
+  <div class="wrap">
+    <div class="eyebrow">Comment ça marche</div>
+    <h2>Trois principes simples, appliqués à chaque mot</h2>
+    <div class="grid-3">
+      <div class="feature">
+        <div class="feature-mark">Aa</div>
+        <h3>Un vrai dictionnaire</h3>
+        <p>Les suggestions s'appuient sur Lexique 4 (New, Pallier, Schalchli, Bourgin &amp; Gimenes), un lexique du français validé scientifiquement — pas une liste de mots devinés.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-mark">Gr</div>
+        <h3>Grammaticalement à jour</h3>
+        <p>Accords, conjugaisons et élisions (l', d', qu'...) sont pris en compte automatiquement, pour ne jamais suggérer un mot qui sonne faux dans la phrase.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-mark">🔒</div>
+        <h3>100% local</h3>
+        <p>Rien de ce que vous tapez n'est envoyé à un serveur. Le dictionnaire et vos réglages restent dans votre navigateur.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="tarifs">
+  <div class="wrap">
+    <div class="eyebrow">Tarifs</div>
+    <h2>Gratuit pour écrire plus vite. Premium pour aller plus loin.</h2>
+
+    <div class="plans">
+      <div class="plan">
+        <div class="plan-name">Gratuit</div>
+        <div class="plan-price">0 $</div>
+        <div class="plan-note">Pour toujours, sans carte bancaire</div>
+        <ul>
+          <li>Suggestions en temps réel</li>
+          <li>Dictionnaire personnel (ajout et export)</li>
+          <li>Mots masqués (ajout et export)</li>
+          <li>Jusqu'à 500 mots mémorisés</li>
+          <li>Déclenchement dès 1 à 2 lettres</li>
+          <li>Ratio d'effort réglable jusqu'à 20%</li>
+        </ul>
+        <a href="#" class="btn btn-secondary">Ajouter à Chrome</a>
+      </div>
+
+      <div class="plan plan-premium">
+        <div class="plan-name">Premium</div>
+        <!-- TODO : ajuster le prix si besoin -->
+        <div class="plan-price">2,50 $ <span>CAD, achat unique</span></div>
+        <div class="plan-note">Pas d'abonnement, pas de renouvellement</div>
+        <ul>
+          <li>Tout ce qui est inclus dans Gratuit</li>
+          <li>Masquer les mots rares</li>
+          <li>Jusqu'à 1000 mots mémorisés</li>
+          <li>Déclenchement dès 1 à 10 lettres</li>
+          <li>Ratio d'effort réglable jusqu'à 100%</li>
+          <li>Import en masse de listes (.txt)</li>
+        </ul>
+        <!-- TODO : remplacer "#" par le lien de paiement LemonSqueezy une fois le produit créé -->
+        <a href="#" class="btn btn-primary">Obtenir Premium</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="confidentialite">
+  <div class="wrap">
+    <div class="eyebrow">Confidentialité</div>
+    <h2>Ce que l'extension fait — et ne fait pas</h2>
+    <div class="privacy-note">
+      <p><strong>Ce qui est stocké :</strong> vos réglages, votre dictionnaire personnel et votre liste de mots masqués sont enregistrés localement dans votre navigateur (et synchronisés via votre compte Google si la synchronisation Chrome est activée).</p>
+      <p><strong>Ce qui n'est jamais collecté :</strong> le texte que vous écrivez n'est ni enregistré, ni transmis, ni analysé sur un serveur. L'extension ne fonctionne qu'avec ce qui est déjà présent dans votre navigateur.</p>
+      <p style="margin-bottom:0;"><strong>Mise à jour du dictionnaire :</strong> l'extension vérifie périodiquement si une nouvelle version du dictionnaire linguistique est disponible, et la télécharge automatiquement — c'est la seule connexion réseau effectuée.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap" style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; width:100%;">
+    <span>Saisie semi-automatique — extension Chrome non affiliée à Google.</span>
+    <!-- TODO : remplacer par une vraie adresse de contact -->
+    <a href="mailto:contact@votredomaine.example">contact@votredomaine.example</a>
+  </div>
+</footer>
+
+<script>
+(function () {
+  // Petite démo qui "tape" une phrase, affiche une suggestion fantôme,
+  // puis simule l'acceptation avec Tab -- reproduit fidèlement le
+  // comportement réel de l'extension.
+  var exemples = [
+    { tape: "Je vous confirme la répara", fantome: "tion" },
+    { tape: "Veuillez trouver ci-join", fantome: "t" },
+    { tape: "Merci beauc", fantome: "oup" },
+    { tape: "Dans l'atten", fantome: "te de votre retour" }
+  ];
+
+  var elTyped = document.getElementById('demoTyped');
+  var elGhost = document.getElementById('demoGhost');
+  var elHint = document.getElementById('demoHint');
+
+  var reduireMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function attendre(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+  async function jouerExemple(ex) {
+    elTyped.textContent = '';
+    elGhost.textContent = '';
+    elGhost.classList.remove('accepted');
+    elHint.classList.remove('show');
+
+    if (reduireMotion) {
+      elTyped.textContent = ex.tape;
+      elGhost.textContent = ex.fantome;
+      elHint.classList.add('show');
+      await attendre(1800);
+      return;
+    }
+
+    for (var i = 0; i < ex.tape.length; i++) {
+      elTyped.textContent += ex.tape[i];
+      await attendre(38);
+    }
+
+    await attendre(280);
+    elGhost.textContent = ex.fantome;
+    elHint.classList.add('show');
+    await attendre(950);
+
+    elGhost.classList.add('accepted');
+    await attendre(220);
+    elTyped.textContent += ex.fantome;
+    elGhost.textContent = '';
+    elHint.classList.remove('show');
+    await attendre(1100);
+  }
+
+  async function boucle() {
+    var i = 0;
+    while (true) {
+      await jouerExemple(exemples[i % exemples.length]);
+      i++;
+    }
+  }
+
+  boucle();
+})();
+</script>
+
+</body>
+</html>
