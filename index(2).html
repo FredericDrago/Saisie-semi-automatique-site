@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en" id="htmlRoot">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">Saisie semi-automatique : Real-time French autocomplete</title>
+<meta id="pageDesc" name="description" content="A Chrome extension that completes your words in French as you type, without ever sending your data anywhere but your own browser.">
+<style>
+
+  :root {
+    --paper: #f5f6f4;
+    --paper-raised: #ffffff;
+    --ink: #1e2230;
+    --ink-soft: #545b6e;
+    --ink-faint: #8a90a3;
+    --ghost: #b8bcc8;
+    --line: #e2e4e0;
+    --accent: #2f6b5e;
+    --accent-tint: #e2eeea;
+    --accent-2: #a9761f;
+    --accent-2-tint: #f5ecd9;
+    --radius: 10px;
+    --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --mono: 'SF Mono', 'Consolas', 'Menlo', 'Liberation Mono', monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: inherit; }
+
+  .wrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ---------- NAV ---------- */
+
+  nav.top {
+    padding: 22px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  nav.top .wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--serif);
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .brand-tag {
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-tint);
+    padding: 2px 7px;
+    border-radius: 5px;
+    letter-spacing: 0.04em;
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+
+  nav.top .links {
+    display: flex;
+    gap: 28px;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+
+  nav.top .links a { text-decoration: none; }
+  nav.top .links a:hover { color: var(--ink); }
+
+  .lang-switch {
+    display: inline-flex;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    overflow: hidden;
+  }
+
+  .lang-btn {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--ink-faint);
+    background: var(--paper-raised);
+    border: none;
+    padding: 6px 11px;
+    cursor: pointer;
+  }
+
+  .lang-btn + .lang-btn { border-left: 1px solid var(--line); }
+
+  .lang-btn.active {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  /* ---------- HERO ---------- */
+
+  header.hero {
+    padding: 76px 0 64px;
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(32px, 5vw, 48px);
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    margin: 0 0 20px;
+    max-width: 15ch;
+  }
+
+  .lede {
+    font-size: 18px;
+    color: var(--ink-soft);
+    max-width: 46ch;
+    margin: 0 0 40px;
+  }
+
+  .cta-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 56px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--sans);
+    font-size: 14.5px;
+    font-weight: 600;
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    border: 1px solid transparent;
+    cursor: pointer;
+  }
+
+  .btn-primary {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .btn-primary:hover { background: #313649; }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--ink);
+    border-color: var(--line);
+  }
+
+  .btn-secondary:hover { border-color: var(--ink-soft); }
+
+  /* ---------- DEMO (signature element) ---------- */
+
+  .demo {
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 28px 30px;
+  }
+
+  .demo-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    margin-bottom: 14px;
+  }
+
+  .demo-line {
+    font-family: var(--mono);
+    font-size: 17px;
+    min-height: 26px;
+    white-space: pre;
+  }
+
+  .demo-typed { color: var(--ink); }
+  .demo-ghost { color: var(--ghost); transition: color 0.15s ease; }
+  .demo-ghost.accepted { color: var(--ink); }
+
+  .demo-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 18px;
+    background: var(--ink);
+    vertical-align: -3px;
+    animation: blink 1s step-start infinite;
+  }
+
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .demo-hint {
+    margin-top: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--ink-faint);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .demo-hint.show { opacity: 1; }
+
+  kbd {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 700;
+    border: 1px solid var(--line);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    padding: 1px 6px;
+    background: var(--paper);
+  }
+
+  /* ---------- SECTIONS ---------- */
+
+  section { padding: 64px 0; border-top: 1px solid var(--line); }
+
+  .eyebrow {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: 28px;
+    letter-spacing: -0.01em;
+    margin: 0 0 36px;
+    max-width: 26ch;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+
+  .feature h3 {
+    font-size: 15.5px;
+    margin: 0 0 8px;
+  }
+
+  .feature p {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .feature-mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    background: var(--accent-tint);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 14px;
+  }
+
+  /* ---------- PRICING ---------- */
+
+  .plans {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .plan {
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 26px;
+  }
+
+  .plan-premium { border-color: var(--accent-2); }
+
+  .plan-name {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+  }
+
+  .plan-premium .plan-name { color: var(--accent-2); }
+
+  .plan-price {
+    font-family: var(--serif);
+    font-size: 30px;
+    margin-bottom: 4px;
+  }
+
+  .plan-price span {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--ink-faint);
+  }
+
+  .plan-note {
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    margin-bottom: 20px;
+  }
+
+  .plan ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 22px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+  }
+
+  .plan li {
+    padding: 6px 0 6px 20px;
+    position: relative;
+    border-top: 1px solid var(--line);
+  }
+
+  .plan li:first-child { border-top: none; }
+
+  .plan li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--ink-faint);
+  }
+
+  .plan-premium li::before {
+    content: "✓";
+    color: var(--accent-2);
+  }
+
+  .plan .btn { width: 100%; justify-content: center; }
+
+  /* ---------- PRIVACY NOTE ---------- */
+
+  .privacy-note {
+    background: var(--accent-tint);
+    border-radius: var(--radius);
+    padding: 22px 26px;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+
+  .privacy-note strong { color: var(--ink); }
+  .privacy-note p:last-child { margin-bottom: 0; }
+
+  /* ---------- FOOTER ---------- */
+
+  footer {
+    padding: 40px 0 60px;
+    border-top: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--ink-faint);
+  }
+
+  footer .wrap {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  footer a { text-decoration: none; color: var(--ink-soft); }
+  footer a:hover { color: var(--ink); }
+
+  @media (max-width: 640px) {
+    .grid-3, .plans { grid-template-columns: 1fr; }
+    nav.top .links { display: none; }
+    header.hero { padding: 48px 0 40px; }
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .demo-cursor { animation: none; }
+  }
+
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <div class="wrap">
+    <div class="brand">Saisie semi-automatique <span class="brand-tag">FR</span></div>
+    <div class="nav-right">
+      <div class="links">
+        <a href="#comment-ca-marche" data-i18n="nav.how">How it works</a>
+        <a href="#tarifs" data-i18n="nav.pricing">Pricing</a>
+        <a href="#confidentialite" data-i18n="nav.privacy">Privacy</a>
+      </div>
+      <div class="lang-switch" role="group" aria-label="Langue / Language">
+        <button class="lang-btn" data-lang="fr" id="btnLangFr">FR</button>
+        <button class="lang-btn active" data-lang="en" id="btnLangEn">EN</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <h1 data-i18n="hero.title">Your sentence finishes before you do.</h1>
+    <p class="lede" data-i18n="hero.lede">A Chrome extension that completes your words in French as you type, on social media, in Google Docs, or in any text field. Built on a real linguistic dictionary, not a guessed word list.</p>
+
+    <div class="cta-row">
+      <!-- TODO : remplacer "#" par le lien réel de la fiche Chrome Web Store une fois l'extension publiée -->
+      <a href="#" class="btn btn-primary" data-i18n="hero.cta1">Add to Chrome (free)</a>
+      <a href="#tarifs" class="btn btn-secondary" data-i18n="hero.cta2">See pricing</a>
+    </div>
+
+    <div class="demo">
+      <div class="demo-label" data-i18n="demo.label">Live preview</div>
+      <div class="demo-line">
+        <span class="demo-typed" id="demoTyped"></span><span class="demo-ghost" id="demoGhost"></span><span class="demo-cursor"></span>
+      </div>
+      <div class="demo-hint" id="demoHint"><kbd>Tab</kbd> <span data-i18n="demo.hint">to complete</span></div>
+    </div>
+  </div>
+</header>
+
+<section id="comment-ca-marche">
+  <div class="wrap">
+    <div class="eyebrow" data-i18n="how.eyebrow">How it works</div>
+    <h2 data-i18n="how.title">Three simple principles, applied to every word</h2>
+    <div class="grid-3">
+      <div class="feature">
+        <div class="feature-mark">Aa</div>
+        <h3 data-i18n="how.f1.title">A real dictionary</h3>
+        <p data-i18n="how.f1.desc">Suggestions are built on Lexique 4 (New, Pallier, Schalchli, Bourgin &amp; Gimenes), a scientifically validated French lexicon, not a guessed word list.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-mark">Gr</div>
+        <h3 data-i18n="how.f2.title">Grammatically aware</h3>
+        <p data-i18n="how.f2.desc">Agreement, conjugation, and elisions (l', d', qu'...) are handled automatically, so it never suggests a word that sounds wrong in the sentence.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-mark">🔒</div>
+        <h3 data-i18n="how.f3.title">100% local</h3>
+        <p data-i18n="how.f3.desc">Nothing you type is ever sent to a server. The dictionary and your settings stay in your browser.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="tarifs">
+  <div class="wrap">
+    <div class="eyebrow" data-i18n="pricing.eyebrow">Pricing</div>
+    <h2 data-i18n="pricing.title">Free to write faster. Premium to go further.</h2>
+
+    <div class="plans">
+      <div class="plan">
+        <div class="plan-name" data-i18n="pricing.free.name">Free</div>
+        <div class="plan-price">0 $</div>
+        <div class="plan-note" data-i18n="pricing.free.note">Forever, no card required</div>
+        <ul>
+          <li data-i18n="pricing.free.i1">Real-time suggestions</li>
+          <li data-i18n="pricing.free.i2">Personal dictionary (add and export)</li>
+          <li data-i18n="pricing.free.i3">Banned words (add and export)</li>
+          <li data-i18n="pricing.free.i4">Up to 500 learned words</li>
+          <li data-i18n="pricing.free.i5">Triggers from 1 to 2 letters</li>
+          <li data-i18n="pricing.free.i6">Effort ratio adjustable up to 20%</li>
+        </ul>
+        <a href="#" class="btn btn-secondary" data-i18n="pricing.free.cta">Add to Chrome</a>
+      </div>
+
+      <div class="plan plan-premium">
+        <div class="plan-name" data-i18n="pricing.premium.name">Premium</div>
+        <!-- TODO : ajuster le prix si besoin -->
+        <div class="plan-price">2,50 $ <span data-i18n="pricing.premium.priceNote">CAD, one-time purchase</span></div>
+        <div class="plan-note" data-i18n="pricing.premium.note">No subscription, no renewal</div>
+        <ul>
+          <li data-i18n="pricing.premium.i1">Everything in Free</li>
+          <li data-i18n="pricing.premium.i2">Hide rare words</li>
+          <li data-i18n="pricing.premium.i3">Up to 1000 learned words</li>
+          <li data-i18n="pricing.premium.i4">Triggers from 1 to 10 letters</li>
+          <li data-i18n="pricing.premium.i5">Effort ratio adjustable up to 100%</li>
+          <li data-i18n="pricing.premium.i6">Bulk import of lists (.txt)</li>
+        </ul>
+        <!-- TODO : remplacer "#" par le lien de paiement LemonSqueezy une fois le produit créé -->
+        <a href="#" class="btn btn-primary" data-i18n="pricing.premium.cta">Get Premium</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="confidentialite">
+  <div class="wrap">
+    <div class="eyebrow" data-i18n="privacy.eyebrow">Privacy</div>
+    <h2 data-i18n="privacy.title">What the extension does, and doesn't do</h2>
+    <div class="privacy-note">
+      <p data-i18n-html="privacy.p1"><strong>What's stored:</strong> your settings, your personal dictionary, and your list of banned words are saved locally in your browser (and synced via your Google account if Chrome sync is on).</p>
+      <p data-i18n-html="privacy.p2"><strong>What's never collected:</strong> the text you write is never saved, transmitted, or analyzed on a server. The extension only works with what's already in your browser.</p>
+      <p data-i18n-html="privacy.p3"><strong>Dictionary updates:</strong> the extension periodically checks whether a new version of the linguistic dictionary is available, and downloads it automatically: that's the only network connection it ever makes.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span data-i18n="footer.line">Saisie semi-automatique, a Chrome extension not affiliated with Google.</span>
+    <!-- TODO : remplacer par une vraie adresse de contact -->
+    <a href="mailto:contact@votredomaine.example">contact@votredomaine.example</a>
+  </div>
+</footer>
+
+<script>
+(function () {
+
+  // =======================================================================
+  // TRADUCTIONS -- chaque clé correspond à un data-i18n (texte brut) ou
+  // data-i18n-html (contenu avec balises, ex. <strong>) dans le HTML.
+  // =======================================================================
+  var i18n = {
+    fr: {
+      title: "Saisie semi-automatique : suggestions d'écriture en temps réel",
+      desc: "Extension Chrome qui complète vos mots en français pendant que vous écrivez, sans jamais envoyer vos données ailleurs que dans votre navigateur.",
+      "nav.how": "Comment ça marche",
+      "nav.pricing": "Tarifs",
+      "nav.privacy": "Confidentialité",
+      "hero.title": "Votre phrase se termine avant vous.",
+      "hero.lede": "Une extension Chrome qui complète vos mots en français pendant que vous écrivez, sur les réseaux sociaux, dans Google Docs, ou dans n'importe quel champ de texte. Basée sur un vrai dictionnaire linguistique, pas une liste de mots au hasard.",
+      "hero.cta1": "Ajouter à Chrome (gratuit)",
+      "hero.cta2": "Voir les tarifs",
+      "demo.label": "Aperçu en direct",
+      "demo.hint": "pour compléter",
+      "how.eyebrow": "Comment ça marche",
+      "how.title": "Trois principes simples, appliqués à chaque mot",
+      "how.f1.title": "Un vrai dictionnaire",
+      "how.f1.desc": "Les suggestions s'appuient sur Lexique 4 (New, Pallier, Schalchli, Bourgin & Gimenes), un lexique du français validé scientifiquement, pas une liste de mots devinés.",
+      "how.f2.title": "Grammaticalement à jour",
+      "how.f2.desc": "Accords, conjugaisons et élisions (l', d', qu'...) sont pris en compte automatiquement, pour ne jamais suggérer un mot qui sonne faux dans la phrase.",
+      "how.f3.title": "100% local",
+      "how.f3.desc": "Rien de ce que vous tapez n'est envoyé à un serveur. Le dictionnaire et vos réglages restent dans votre navigateur.",
+      "pricing.eyebrow": "Tarifs",
+      "pricing.title": "Gratuit pour écrire plus vite. Premium pour aller plus loin.",
+      "pricing.free.name": "Gratuit",
+      "pricing.free.note": "Pour toujours, sans carte bancaire",
+      "pricing.free.i1": "Suggestions en temps réel",
+      "pricing.free.i2": "Dictionnaire personnel (ajout et export)",
+      "pricing.free.i3": "Mots masqués (ajout et export)",
+      "pricing.free.i4": "Jusqu'à 500 mots mémorisés",
+      "pricing.free.i5": "Déclenchement dès 1 à 2 lettres",
+      "pricing.free.i6": "Ratio d'effort réglable jusqu'à 20%",
+      "pricing.free.cta": "Ajouter à Chrome",
+      "pricing.premium.name": "Premium",
+      "pricing.premium.priceNote": "CAD, achat unique",
+      "pricing.premium.note": "Pas d'abonnement, pas de renouvellement",
+      "pricing.premium.i1": "Tout ce qui est inclus dans Gratuit",
+      "pricing.premium.i2": "Masquer les mots rares",
+      "pricing.premium.i3": "Jusqu'à 1000 mots mémorisés",
+      "pricing.premium.i4": "Déclenchement dès 1 à 10 lettres",
+      "pricing.premium.i5": "Ratio d'effort réglable jusqu'à 100%",
+      "pricing.premium.i6": "Import en masse de listes (.txt)",
+      "pricing.premium.cta": "Obtenir Premium",
+      "privacy.eyebrow": "Confidentialité",
+      "privacy.title": "Ce que l'extension fait, et ne fait pas",
+      "privacy.p1": "<strong>Ce qui est stocké :</strong> vos réglages, votre dictionnaire personnel et votre liste de mots masqués sont enregistrés localement dans votre navigateur (et synchronisés via votre compte Google si la synchronisation Chrome est activée).",
+      "privacy.p2": "<strong>Ce qui n'est jamais collecté :</strong> le texte que vous écrivez n'est ni enregistré, ni transmis, ni analysé sur un serveur. L'extension ne fonctionne qu'avec ce qui est déjà présent dans votre navigateur.",
+      "privacy.p3": "<strong>Mise à jour du dictionnaire :</strong> l'extension vérifie périodiquement si une nouvelle version du dictionnaire linguistique est disponible, et la télécharge automatiquement : c'est la seule connexion réseau effectuée.",
+      "footer.line": "Saisie semi-automatique, extension Chrome non affiliée à Google."
+    },
+    en: {
+      title: "Saisie semi-automatique : Real-time French autocomplete",
+      desc: "A Chrome extension that completes your words in French as you type, without ever sending your data anywhere but your own browser.",
+      "nav.how": "How it works",
+      "nav.pricing": "Pricing",
+      "nav.privacy": "Privacy",
+      "hero.title": "Your sentence finishes before you do.",
+      "hero.lede": "A Chrome extension that completes your words in French as you type, on social media, in Google Docs, or in any text field. Built on a real linguistic dictionary, not a guessed word list.",
+      "hero.cta1": "Add to Chrome (free)",
+      "hero.cta2": "See pricing",
+      "demo.label": "Live preview",
+      "demo.hint": "to complete",
+      "how.eyebrow": "How it works",
+      "how.title": "Three simple principles, applied to every word",
+      "how.f1.title": "A real dictionary",
+      "how.f1.desc": "Suggestions are built on Lexique 4 (New, Pallier, Schalchli, Bourgin & Gimenes), a scientifically validated French lexicon, not a guessed word list.",
+      "how.f2.title": "Grammatically aware",
+      "how.f2.desc": "Agreement, conjugation, and elisions (l', d', qu'...) are handled automatically, so it never suggests a word that sounds wrong in the sentence.",
+      "how.f3.title": "100% local",
+      "how.f3.desc": "Nothing you type is ever sent to a server. The dictionary and your settings stay in your browser.",
+      "pricing.eyebrow": "Pricing",
+      "pricing.title": "Free to write faster. Premium to go further.",
+      "pricing.free.name": "Free",
+      "pricing.free.note": "Forever, no card required",
+      "pricing.free.i1": "Real-time suggestions",
+      "pricing.free.i2": "Personal dictionary (add and export)",
+      "pricing.free.i3": "Banned words (add and export)",
+      "pricing.free.i4": "Up to 500 learned words",
+      "pricing.free.i5": "Triggers from 1 to 2 letters",
+      "pricing.free.i6": "Effort ratio adjustable up to 20%",
+      "pricing.free.cta": "Add to Chrome",
+      "pricing.premium.name": "Premium",
+      "pricing.premium.priceNote": "CAD, one-time purchase",
+      "pricing.premium.note": "No subscription, no renewal",
+      "pricing.premium.i1": "Everything in Free",
+      "pricing.premium.i2": "Hide rare words",
+      "pricing.premium.i3": "Up to 1000 learned words",
+      "pricing.premium.i4": "Triggers from 1 to 10 letters",
+      "pricing.premium.i5": "Effort ratio adjustable up to 100%",
+      "pricing.premium.i6": "Bulk import of lists (.txt)",
+      "pricing.premium.cta": "Get Premium",
+      "privacy.eyebrow": "Privacy",
+      "privacy.title": "What the extension does, and doesn't do",
+      "privacy.p1": "<strong>What's stored:</strong> your settings, your personal dictionary, and your list of banned words are saved locally in your browser (and synced via your Google account if Chrome sync is on).",
+      "privacy.p2": "<strong>What's never collected:</strong> the text you write is never saved, transmitted, or analyzed on a server. The extension only works with what's already in your browser.",
+      "privacy.p3": "<strong>Dictionary updates:</strong> the extension periodically checks whether a new version of the linguistic dictionary is available, and downloads it automatically: that's the only network connection it ever makes.",
+      "footer.line": "Saisie semi-automatique, a Chrome extension not affiliated with Google."
+    }
+  };
+
+  var langueActuelle = localStorage.getItem('langue') || 'en';
+
+  function appliquerLangue(langue) {
+    var dict = i18n[langue];
+    if (!dict) return;
+
+    document.querySelectorAll('[data-i18n]').forEach(function (el) {
+      var cle = el.getAttribute('data-i18n');
+      if (dict[cle] !== undefined) el.textContent = dict[cle];
+    });
+
+    document.querySelectorAll('[data-i18n-html]').forEach(function (el) {
+      var cle = el.getAttribute('data-i18n-html');
+      if (dict[cle] !== undefined) el.innerHTML = dict[cle];
+    });
+
+    document.getElementById('pageTitle').textContent = dict.title;
+    document.getElementById('pageDesc').setAttribute('content', dict.desc);
+    document.getElementById('htmlRoot').setAttribute('lang', langue);
+
+    document.getElementById('btnLangFr').classList.toggle('active', langue === 'fr');
+    document.getElementById('btnLangEn').classList.toggle('active', langue === 'en');
+
+    langueActuelle = langue;
+    localStorage.setItem('langue', langue);
+    demarrerDemo();
+  }
+
+  document.getElementById('btnLangFr').addEventListener('click', function () { appliquerLangue('fr'); });
+  document.getElementById('btnLangEn').addEventListener('click', function () { appliquerLangue('en'); });
+
+  // =======================================================================
+  // DÉMO ANIMÉE -- toujours en français : l'extension ne suggère QUE des
+  // mots français, quelle que soit la langue d'affichage de cette page.
+  // =======================================================================
+  var exemples = [
+    { tape: "Je vous confirme la répara", fantome: "tion" },
+    { tape: "Veuillez trouver ci-join", fantome: "t" },
+    { tape: "Merci beauc", fantome: "oup" },
+    { tape: "Dans l'atten", fantome: "te de votre retour" }
+  ];
+
+  var elTyped = document.getElementById('demoTyped');
+  var elGhost = document.getElementById('demoGhost');
+  var elHint = document.getElementById('demoHint');
+  var reduireMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var jetonDemoActuel = 0;
+
+  function attendre(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+  async function jouerExemple(ex, monJeton) {
+    elTyped.textContent = '';
+    elGhost.textContent = '';
+    elGhost.classList.remove('accepted');
+    elHint.classList.remove('show');
+
+    if (reduireMotion) {
+      elTyped.textContent = ex.tape;
+      elGhost.textContent = ex.fantome;
+      elHint.classList.add('show');
+      await attendre(1800);
+      return;
+    }
+
+    for (var i = 0; i < ex.tape.length; i++) {
+      if (monJeton !== jetonDemoActuel) return;
+      elTyped.textContent += ex.tape[i];
+      await attendre(38);
+    }
+
+    if (monJeton !== jetonDemoActuel) return;
+    await attendre(280);
+    elGhost.textContent = ex.fantome;
+    elHint.classList.add('show');
+    await attendre(950);
+
+    if (monJeton !== jetonDemoActuel) return;
+    elGhost.classList.add('accepted');
+    await attendre(220);
+    elTyped.textContent += ex.fantome;
+    elGhost.textContent = '';
+    elHint.classList.remove('show');
+    await attendre(1100);
+  }
+
+  async function boucleDemo(monJeton) {
+    var i = 0;
+    while (monJeton === jetonDemoActuel) {
+      await jouerExemple(exemples[i % exemples.length], monJeton);
+      i++;
+    }
+  }
+
+  function demarrerDemo() {
+    jetonDemoActuel++;
+    boucleDemo(jetonDemoActuel);
+  }
+
+  appliquerLangue(langueActuelle);
+})();
+</script>
+
+</body>
+</html>
