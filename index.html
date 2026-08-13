@@ -31,7 +31,9 @@
 
   body {
     margin: 0;
-    background: var(--paper);
+    background-color: var(--paper);
+    background-image: radial-gradient(1200px 780px at -8% -12%, rgba(0, 119, 204, 0.32), rgba(0, 119, 204, 0) 62%);
+    background-repeat: no-repeat;
     color: var(--ink);
     font-family: var(--sans);
     line-height: 1.55;
@@ -231,6 +233,16 @@
   }
 
   .demo-hint.show { opacity: 1; }
+
+  .promo-shot {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-top: 28px;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    box-shadow: 0 12px 28px -18px rgba(30, 34, 48, 0.25);
+  }
 
   kbd {
     font-family: var(--sans);
@@ -460,6 +472,8 @@
       </div>
       <div class="demo-hint" id="demoHint"><kbd>Tab</kbd> <span data-i18n="demo.hint">to complete</span></div>
     </div>
+
+    <img class="promo-shot" id="promoShot" src="promo-features-en.png" alt="Customizable to suit your needs. Local dictionary management.">
   </div>
 </header>
 
@@ -568,6 +582,7 @@
       "hero.cta2": "Voir les tarifs",
       "demo.label": "Aperçu en direct",
       "demo.hint": "pour compléter",
+      "promo.alt": "Personnalisable selon vos besoins. Gestion locale des dictionnaires.",
       "how.eyebrow": "Comment ça marche",
       "how.title": "Trois principes simples, appliqués à chaque mot",
       "how.f1.title": "Un vrai dictionnaire",
@@ -616,6 +631,7 @@
       "hero.cta2": "See pricing",
       "demo.label": "Live preview",
       "demo.hint": "to complete",
+      "promo.alt": "Customizable to suit your needs. Local dictionary management.",
       "how.eyebrow": "How it works",
       "how.title": "Three simple principles, applied to every word",
       "how.f1.title": "A real dictionary",
@@ -673,6 +689,12 @@
     document.getElementById('pageTitle').textContent = dict.title;
     document.getElementById('pageDesc').setAttribute('content', dict.desc);
     document.getElementById('htmlRoot').setAttribute('lang', langue);
+
+    var promoShot = document.getElementById('promoShot');
+    if (promoShot) {
+      promoShot.src = 'promo-features-' + langue + '.png';
+      if (dict['promo.alt'] !== undefined) promoShot.alt = dict['promo.alt'];
+    }
 
     document.getElementById('btnLangFr').classList.toggle('active', langue === 'fr');
     document.getElementById('btnLangEn').classList.toggle('active', langue === 'en');
