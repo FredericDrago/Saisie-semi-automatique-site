@@ -199,40 +199,19 @@
     margin-bottom: 14px;
   }
 
-  .demo-line {
-    font-family: var(--mono);
-    font-size: 17px;
-    min-height: 26px;
-    white-space: pre;
+  .demo-field {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fafafa;
+    overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(30, 34, 48, 0.04);
   }
 
-  .demo-typed { color: var(--ink); }
-  .demo-ghost { color: var(--ghost); transition: color 0.15s ease; }
-  .demo-ghost.accepted { color: var(--ink); }
-
-  .demo-cursor {
-    display: inline-block;
-    width: 2px;
-    height: 18px;
-    background: var(--ink);
-    vertical-align: -3px;
-    animation: blink 1s step-start infinite;
+  .demo-field-gif {
+    display: block;
+    width: 100%;
+    height: auto;
   }
-
-  @keyframes blink { 50% { opacity: 0; } }
-
-  .demo-hint {
-    margin-top: 16px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: var(--ink-faint);
-    opacity: 0;
-    transition: opacity 0.2s ease;
-  }
-
-  .demo-hint.show { opacity: 1; }
 
   .promo-shot {
     display: block;
@@ -242,17 +221,6 @@
     border-radius: var(--radius);
     border: 1px solid var(--line);
     box-shadow: 0 12px 28px -18px rgba(30, 34, 48, 0.25);
-  }
-
-  kbd {
-    font-family: var(--sans);
-    font-size: 11px;
-    font-weight: 700;
-    border: 1px solid var(--line);
-    border-bottom-width: 2px;
-    border-radius: 4px;
-    padding: 1px 6px;
-    background: var(--paper);
   }
 
   /* ---------- SECTIONS ---------- */
@@ -430,7 +398,6 @@
 
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-    .demo-cursor { animation: none; }
   }
 
 </style>
@@ -467,10 +434,9 @@
 
     <div class="demo">
       <div class="demo-label" data-i18n="demo.label">Live preview</div>
-      <div class="demo-line">
-        <span class="demo-typed" id="demoTyped"></span><span class="demo-ghost" id="demoGhost"></span><span class="demo-cursor"></span>
+      <div class="demo-field">
+        <img class="demo-field-gif" src="demo.gif" data-i18n-alt="demo.gifAlt" alt="Live demo of the extension suggesting word completions while typing">
       </div>
-      <div class="demo-hint" id="demoHint"><kbd>Tab</kbd> <span data-i18n="demo.hint">to complete</span></div>
     </div>
 
     <img class="promo-shot" id="promoShot" src="promo-features-en.png" alt="Customizable to suit your needs. Local dictionary management.">
@@ -581,7 +547,7 @@
       "hero.cta1": "Ajouter à Chrome (gratuit)",
       "hero.cta2": "Voir les tarifs",
       "demo.label": "Aperçu en direct",
-      "demo.hint": "pour compléter",
+      "demo.gifAlt": "Démonstration de l'extension qui suggère des compléments de mots pendant la frappe",
       "promo.alt": "Personnalisable selon vos besoins. Gestion locale des dictionnaires.",
       "how.eyebrow": "Comment ça marche",
       "how.title": "Trois principes simples, appliqués à chaque mot",
@@ -630,7 +596,7 @@
       "hero.cta1": "Add to Chrome (free)",
       "hero.cta2": "See pricing",
       "demo.label": "Live preview",
-      "demo.hint": "to complete",
+      "demo.gifAlt": "Live demo of the extension suggesting word completions while typing",
       "promo.alt": "Customizable to suit your needs. Local dictionary management.",
       "how.eyebrow": "How it works",
       "how.title": "Three simple principles, applied to every word",
@@ -686,6 +652,11 @@
       if (dict[cle] !== undefined) el.innerHTML = dict[cle];
     });
 
+    document.querySelectorAll('[data-i18n-alt]').forEach(function (el) {
+      var cle = el.getAttribute('data-i18n-alt');
+      if (dict[cle] !== undefined) el.alt = dict[cle];
+    });
+
     document.getElementById('pageTitle').textContent = dict.title;
     document.getElementById('pageDesc').setAttribute('content', dict.desc);
     document.getElementById('htmlRoot').setAttribute('lang', langue);
@@ -701,78 +672,10 @@
 
     langueActuelle = langue;
     localStorage.setItem('langue', langue);
-    demarrerDemo();
   }
 
   document.getElementById('btnLangFr').addEventListener('click', function () { appliquerLangue('fr'); });
   document.getElementById('btnLangEn').addEventListener('click', function () { appliquerLangue('en'); });
-
-  // =======================================================================
-  // DÉMO ANIMÉE -- toujours en français : l'extension ne suggère QUE des
-  // mots français, quelle que soit la langue d'affichage de cette page.
-  // =======================================================================
-  var exemples = [
-    { tape: "Je vous confirme la répara", fantome: "tion" },
-    { tape: "Veuillez trouver ci-join", fantome: "t" },
-    { tape: "Merci beauc", fantome: "oup" },
-    { tape: "Dans l'atten", fantome: "te de votre retour" }
-  ];
-
-  var elTyped = document.getElementById('demoTyped');
-  var elGhost = document.getElementById('demoGhost');
-  var elHint = document.getElementById('demoHint');
-  var reduireMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var jetonDemoActuel = 0;
-
-  function attendre(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
-
-  async function jouerExemple(ex, monJeton) {
-    elTyped.textContent = '';
-    elGhost.textContent = '';
-    elGhost.classList.remove('accepted');
-    elHint.classList.remove('show');
-
-    if (reduireMotion) {
-      elTyped.textContent = ex.tape;
-      elGhost.textContent = ex.fantome;
-      elHint.classList.add('show');
-      await attendre(1800);
-      return;
-    }
-
-    for (var i = 0; i < ex.tape.length; i++) {
-      if (monJeton !== jetonDemoActuel) return;
-      elTyped.textContent += ex.tape[i];
-      await attendre(38);
-    }
-
-    if (monJeton !== jetonDemoActuel) return;
-    await attendre(280);
-    elGhost.textContent = ex.fantome;
-    elHint.classList.add('show');
-    await attendre(950);
-
-    if (monJeton !== jetonDemoActuel) return;
-    elGhost.classList.add('accepted');
-    await attendre(220);
-    elTyped.textContent += ex.fantome;
-    elGhost.textContent = '';
-    elHint.classList.remove('show');
-    await attendre(1100);
-  }
-
-  async function boucleDemo(monJeton) {
-    var i = 0;
-    while (monJeton === jetonDemoActuel) {
-      await jouerExemple(exemples[i % exemples.length], monJeton);
-      i++;
-    }
-  }
-
-  function demarrerDemo() {
-    jetonDemoActuel++;
-    boucleDemo(jetonDemoActuel);
-  }
 
   appliquerLangue(langueActuelle);
 })();
